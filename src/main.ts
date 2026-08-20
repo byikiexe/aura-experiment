@@ -2,6 +2,7 @@ import './styles/variables.css'
 import './styles/reset.css'
 import './styles/main.css'
 import { generateAura } from './engine/generateAura'
+import { AuraRenderer } from './engine/renderer'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <main class="aura">
@@ -40,6 +41,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           Generate
           <span aria-hidden="true">→</span>
         </button>
+
+        <div class="aura__meta" aria-live="polite"></div>
       </form>
 
     </section>
@@ -51,9 +54,32 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </main>
 
   <div class="aura__grain" aria-hidden="true"></div>
+
+  <div class="aura__artwork" aria-hidden="true">
+    <canvas class="aura__canvas"></canvas>
+  </div>
 `
+const canvas =
+    document.querySelector<HTMLCanvasElement>(
+        '.aura__canvas'
+    )
+
+const artwork =
+    document.querySelector<HTMLDivElement>(
+        '.aura__artwork'
+    )
+
+if (!canvas) {
+    throw new Error('AURA canvas not found')
+}
+
+const renderer = new AuraRenderer(canvas)
 const form = document.querySelector<HTMLFormElement>('.aura__form')
 const input = document.querySelector<HTMLInputElement>('#thought')
+const meta =
+    document.querySelector<HTMLDivElement>(
+        '.aura__meta'
+    )
 
 form?.addEventListener('submit', (event) => {
     event.preventDefault()
@@ -66,6 +92,15 @@ form?.addEventListener('submit', (event) => {
     }
 
     const aura = generateAura(thought)
+    if (meta) {
+    meta.textContent =
+        `AURA / ${aura.seedHex} / ${aura.palette.id.toUpperCase()}`
+
+    meta.classList.add('is-visible')
+}
+    renderer.render(aura)
+
+    artwork?.classList.add('is-visible')
 
     console.table({
         thought: aura.thought,
