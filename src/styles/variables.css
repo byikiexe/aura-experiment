@@ -1,0 +1,18 @@
+:root {
+    /* Surfaces */
+    --aura-black: #090909;
+    --aura-surface: #111111;
+
+    /* Typography */
+    --aura-white: #f1eee8;
+    --aura-muted: #77736d;
+
+    /* Lines */
+    --aura-line: rgba(241, 238, 232, 0.14);
+
+    /* Motion */
+    --aura-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Layout */
+    --aura-space: clamp(1.5rem, 4vw, 4rem);
+}
