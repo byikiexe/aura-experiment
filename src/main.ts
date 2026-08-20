@@ -1,6 +1,7 @@
 import './styles/variables.css'
 import './styles/reset.css'
 import './styles/main.css'
+import { generateAura } from './engine/generateAura'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <main class="aura">
@@ -51,3 +52,32 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
   <div class="aura__grain" aria-hidden="true"></div>
 `
+const form = document.querySelector<HTMLFormElement>('.aura__form')
+const input = document.querySelector<HTMLInputElement>('#thought')
+
+form?.addEventListener('submit', (event) => {
+    event.preventDefault()
+
+    const thought = input?.value.trim()
+
+    if (!thought) {
+        input?.focus()
+        return
+    }
+
+    const aura = generateAura(thought)
+
+    console.table({
+        thought: aura.thought,
+        seed: aura.seedHex,
+        geometry: aura.geometry,
+        palette: aura.palette.id,
+        density: aura.composition.density,
+        complexity: aura.composition.complexity,
+        symmetry: aura.composition.symmetry,
+        distortion: aura.composition.distortion,
+        speed: aura.motion.speed,
+        amplitude: aura.motion.amplitude,
+        noise: aura.noise,
+    })
+})
