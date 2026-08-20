@@ -15,9 +15,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <p class="aura__eyebrow">GENERATIVE STUDY / 001</p>
 
         <h1>
-          Turn a thought<br>
-          into something<br>
-          you can see.
+            Turn a thought<br>
+            into something<br>
+            <em>you can see.</em>
         </h1>
       </div>
 
@@ -48,4 +48,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <span>BY BYIKI.EXE</span>
     </footer>
   </main>
+
+  <div class="aura__grain" aria-hidden="true"></div>
 `

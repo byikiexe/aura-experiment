@@ -15,4 +15,7 @@
 
     /* Layout */
     --aura-space: clamp(1.5rem, 4vw, 4rem);
+
+    --font-display: "Instrument Serif", Georgia, serif;
+    --font-interface: "Inter", Arial, sans-serif;
 }
