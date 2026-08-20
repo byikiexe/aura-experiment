@@ -1,2 +1,8 @@
-# aura-experiment
-Generative art experiment that transforms words into deterministic visual compositions.
+EXPERIMENT / 001
+
+AURA
+
+Words transformed into
+generative visual compositions.
+
+● BUILDING
