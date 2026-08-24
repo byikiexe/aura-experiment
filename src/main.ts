@@ -139,6 +139,12 @@ const rendererB =
 
 const form = document.querySelector<HTMLFormElement>('.aura__form')
 const input = document.querySelector<HTMLInputElement>('#thought')
+
+const generateButton =
+    document.querySelector<HTMLButtonElement>(
+        '.aura__form button[type="submit"]'
+    )
+
 const meta =
     document.querySelector<HTMLDivElement>(
         '.aura__meta'
@@ -163,6 +169,11 @@ let currentThought = ''
 let currentAura: Aura | null = null
 let activeCanvas:
     'a' | 'b' = 'a'
+
+let isGenerating = false
+
+const MATERIALIZATION_DURATION = 3000
+
 
 function renderAura(
     thought: string
@@ -252,7 +263,7 @@ function renderAura(
                     'is-materializing'
                 )
             },
-            3000
+            MATERIALIZATION_DURATION
         )
 
         activeCanvas =
@@ -296,6 +307,10 @@ form?.addEventListener(
 
         event.preventDefault()
 
+        if (isGenerating) {
+            return
+        }
+
         const thought =
             input?.value.trim()
 
@@ -313,6 +328,13 @@ form?.addEventListener(
             return
         }
 
+        isGenerating = true
+
+        generateButton?.setAttribute(
+            'aria-disabled',
+            'true'
+        )
+
         /*
          * A new thought always begins
          * from its original composition.
@@ -321,6 +343,17 @@ form?.addEventListener(
 
         renderAura(
             currentThought
+        )
+
+        window.setTimeout(
+            () => {
+                isGenerating = false
+
+                generateButton?.removeAttribute(
+                    'aria-disabled'
+                )
+            },
+            MATERIALIZATION_DURATION
         )
 
     }

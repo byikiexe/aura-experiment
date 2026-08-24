@@ -302,6 +302,9 @@ body {
     letter-spacing: 0.18em;
 
     text-transform: uppercase;
+
+    transition:
+        opacity 400ms var(--aura-ease);
 }
 
 
@@ -319,6 +322,15 @@ body {
 
 .aura__form button:hover span {
     transform: translateX(0.45rem);
+}
+
+.aura__form button[aria-disabled="true"] {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.aura__form button[aria-disabled="true"]:hover span {
+    transform: none;
 }
 
 .aura__statement h1 em {
