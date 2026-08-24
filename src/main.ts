@@ -38,6 +38,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           autocomplete="off"
           maxlength="120"
           placeholder="places I only remember in dreams"
+          aria-describedby="aura-result"
         >
 
         <button type="submit">
@@ -45,22 +46,36 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <span aria-hidden="true">→</span>
         </button>
 
-        <div class="aura__meta" aria-live="polite"></div>
+        <div
+            class="aura__meta"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            id="aura-result"
+        ></div>
 
 <div class="aura__export">
 
   <button
     class="aura__export-trigger"
     type="button"
+    aria-expanded="false"
+    aria-controls="aura-export-options"
   >
     EXPORT
   </button>
 
-  <div class="aura__export-options">
+  <div
+        id="aura-export-options"
+        class="aura__export-options"
+        aria-hidden="true"
+    >
 
     <button
       type="button"
       data-format="square"
+      tabindex="-1"
+      aria-label="Export square, 1 by 1"
     >
       1:1
     </button>
@@ -68,6 +83,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <button
       type="button"
       data-format="portrait"
+      tabindex="-1"
+      aria-label="Export portrait, 4 by 5"
     >
       4:5
     </button>
@@ -75,6 +92,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <button
       type="button"
       data-format="story"
+      tabindex="-1"
+      aria-label="Export story, 9 by 16"
     >
       9:16
     </button>
@@ -160,6 +179,11 @@ const exportTrigger =
         '.aura__export-trigger'
     )
 
+const exportOptionsContainer =
+    document.querySelector<HTMLDivElement>(
+        '.aura__export-options'
+    )
+
 const exportOptions =
     document.querySelectorAll<HTMLButtonElement>(
         '.aura__export-options button'
@@ -173,6 +197,15 @@ let activeCanvas:
 let isGenerating = false
 
 const MATERIALIZATION_DURATION = 3000
+
+const reducedMotionQuery =
+    window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+    )
+
+function prefersReducedMotion(): boolean {
+    return reducedMotionQuery.matches
+}
 
 
 function renderAura(
@@ -257,13 +290,18 @@ function renderAura(
             }
         )
 
+        const transitionDuration =
+            prefersReducedMotion()
+                ? 0
+                : MATERIALIZATION_DURATION
+
         window.setTimeout(
             () => {
                 nextCanvas.classList.remove(
                     'is-materializing'
                 )
             },
-            MATERIALIZATION_DURATION
+            transitionDuration
         )
 
         activeCanvas =
@@ -298,6 +336,22 @@ function renderAura(
     exportControl?.classList.remove(
         'is-open'
     )
+
+    exportTrigger?.setAttribute(
+    'aria-expanded',
+    'false'
+)
+
+exportOptionsContainer?.setAttribute(
+    'aria-hidden',
+    'true'
+)
+
+exportOptions.forEach(
+    (button) => {
+        button.tabIndex = -1
+    }
+)
 }
 
 
@@ -345,6 +399,11 @@ form?.addEventListener(
             currentThought
         )
 
+        const generationDuration =
+            prefersReducedMotion()
+                ? 0
+                : MATERIALIZATION_DURATION
+
         window.setTimeout(
             () => {
                 isGenerating = false
@@ -353,7 +412,7 @@ form?.addEventListener(
                     'aria-disabled'
                 )
             },
-            MATERIALIZATION_DURATION
+            generationDuration
         )
 
     }
@@ -376,8 +435,30 @@ exportTrigger?.addEventListener(
     'click',
     () => {
 
-        exportControl?.classList.toggle(
-            'is-open'
+        if (!exportControl) {
+            return
+        }
+
+        const isOpen =
+            exportControl.classList.toggle(
+                'is-open'
+            )
+
+        exportTrigger.setAttribute(
+            'aria-expanded',
+            String(isOpen)
+        )
+
+        exportOptionsContainer?.setAttribute(
+            'aria-hidden',
+            String(!isOpen)
+        )
+
+        exportOptions.forEach(
+            (button) => {
+                button.tabIndex =
+                    isOpen ? 0 : -1
+            }
         )
     }
 )

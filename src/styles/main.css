@@ -290,7 +290,7 @@ body {
 
     background: transparent;
 
-    color: var(--aura-white);
+    color: var(--aura-secondary);
 
     cursor: pointer;
 
@@ -324,6 +324,11 @@ body {
     transform: translateX(0.45rem);
 }
 
+.aura__form button:hover,
+.aura__form button:focus-visible {
+    color: var(--aura-white);
+}
+
 .aura__form button[aria-disabled="true"] {
     opacity: 0.35;
     cursor: default;
@@ -331,6 +336,18 @@ body {
 
 .aura__form button[aria-disabled="true"]:hover span {
     transform: none;
+}
+
+.aura__form button:focus-visible,
+.aura__export-trigger:focus-visible,
+.aura__export-options button:focus-visible {
+    outline: 1px solid rgba(241, 238, 232, 0.55);
+    outline-offset: 0.35rem;
+}
+
+.aura__signature:focus-visible {
+    outline: 1px solid rgba(241, 238, 232, 0.55);
+    outline-offset: 0.35rem;
 }
 
 .aura__statement h1 em {
@@ -587,7 +604,7 @@ body {
 
     background: transparent;
 
-    color: var(--aura-muted);
+    color: var(--aura-secondary);
 
     cursor: pointer;
 
@@ -612,6 +629,12 @@ body {
     color: var(--aura-white);
 }
 
+.aura__export-trigger:hover,
+.aura__export-trigger:focus-visible,
+.aura__export-options button:hover,
+.aura__export-options button:focus-visible {
+    color: var(--aura-white);
+}
 
 .aura__export-options {
     display: flex;
@@ -654,4 +677,21 @@ body {
     opacity: 0.7;
 }
 
+@media (prefers-reduced-motion: reduce) {
+
+    .aura__canvas,
+    .aura__meta,
+    .aura__export,
+    .aura__export-options,
+    .aura__form input,
+    .aura__form button,
+    .aura__signature {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+    }
+
+    .aura__form input.is-empty {
+        animation: none;
+    }
+}
 
