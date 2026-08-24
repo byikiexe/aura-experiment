@@ -3,6 +3,9 @@ import './styles/reset.css'
 import './styles/main.css'
 import { generateAura } from './engine/generateAura'
 import { AuraRenderer } from './engine/renderer'
+import type { Aura } from './types/aura'
+import { exportAura } from './export/exportAura'
+import type { ExportFormat } from './export/formats'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <main class="aura">
@@ -43,34 +46,40 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </button>
 
         <div class="aura__meta" aria-live="polite"></div>
-        <div class="aura__variations" aria-hidden="true">
+
+<div class="aura__export">
 
   <button
-    class="aura__variation-button aura__variation-button--previous"
+    class="aura__export-trigger"
     type="button"
-    aria-label="Previous variation"
   >
-    ←
+    EXPORT
   </button>
 
-  <div class="aura__variation-status">
-    <span class="aura__variation-index">
-      <span class="aura__variation-number">00</span>
-      <span class="aura__variation-total">/ 12</span>
-    </span>
+  <div class="aura__export-options">
 
-    <span class="aura__variation-label">
-      ORIGINAL
-    </span>
+    <button
+      type="button"
+      data-format="square"
+    >
+      1:1
+    </button>
+
+    <button
+      type="button"
+      data-format="portrait"
+    >
+      4:5
+    </button>
+
+    <button
+      type="button"
+      data-format="story"
+    >
+      9:16
+    </button>
+
   </div>
-
-  <button
-    class="aura__variation-button aura__variation-button--next"
-    type="button"
-    aria-label="Next variation"
-  >
-    →
-  </button>
 
 </div>
       </form>
@@ -79,7 +88,13 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
     <footer class="aura__footer">
       <span>CODE × ART × EMOTION</span>
-      <span>BY BYIKI.EXE</span>
+      <a
+            href="https://byikiexe.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            BY BYIKI<span style="color: var(--accent-sky-aqua);">.EXE</span>
+        </a>
     </footer>
   </main>
 
@@ -111,48 +126,34 @@ const meta =
         '.aura__meta'
     )
 
-const variations =
+const exportControl =
     document.querySelector<HTMLDivElement>(
-        '.aura__variations'
+        '.aura__export'
     )
 
-const previousVariation =
+const exportTrigger =
     document.querySelector<HTMLButtonElement>(
-        '.aura__variation-button--previous'
+        '.aura__export-trigger'
     )
 
-const nextVariation =
-    document.querySelector<HTMLButtonElement>(
-        '.aura__variation-button--next'
+const exportOptions =
+    document.querySelectorAll<HTMLButtonElement>(
+        '.aura__export-options button'
     )
-
-const variationLabel =
-    document.querySelector<HTMLSpanElement>(
-        '.aura__variation-label'
-    )
-
-const variationNumber =
-    document.querySelector<HTMLSpanElement>(
-        '.aura__variation-number'
-    )
-
-const MAX_VARIATIONS = 12
 
 let currentThought = ''
-let currentVariation = 0
-let variationTransition:
-    number | null = null
+let currentAura: Aura | null = null
 
 function renderAura(
-    thought: string,
-    variation: number
+    thought: string
 ): void {
 
     const aura =
         generateAura(
-            thought,
-            variation
+            thought
         )
+
+    currentAura = aura
 
     renderer.render(aura)
 
@@ -165,48 +166,9 @@ function renderAura(
         meta.classList.add('is-visible')
     }
 
-    updateVariationUI(variation)
 }
 
-function updateVariationUI(
-    variation: number
-): void {
 
-    if (
-        !variationLabel ||
-        !variationNumber
-    ) {
-        return
-    }
-
-    if (nextVariation) {
-        nextVariation.disabled =
-            variation >= MAX_VARIATIONS
-    }
-
-    if (variation === 0) {
-
-        variationLabel.textContent =
-            'ORIGINAL'
-
-        variationNumber.textContent =
-            '00'
-
-    } else {
-
-        variationLabel.textContent =
-            'VARIATION'
-
-        variationNumber.textContent =
-            String(variation)
-                .padStart(2, '0')
-    }
-
-    if (previousVariation) {
-        previousVariation.disabled =
-            variation === 0
-    }
-}
 
 form?.addEventListener(
     'submit',
@@ -227,139 +189,64 @@ form?.addEventListener(
          * from its original composition.
          */
         currentThought = thought
-        currentVariation = 0
 
         renderAura(
-            currentThought,
-            currentVariation
+            currentThought
         )
 
-        variations?.classList.add(
-            'is-visible'
-        )
-
-        variations?.setAttribute(
-            'aria-hidden',
-            'false'
-        )
     }
 )
 
-nextVariation?.addEventListener(
+exportControl?.classList.add(
+    'is-visible'
+)
+
+exportTrigger?.addEventListener(
     'click',
     () => {
 
-        if (
-            !currentThought ||
-            currentVariation >=
-            MAX_VARIATIONS
-        ) {
-            return
-        }
-
-        currentVariation++
-
-        transitionToVariation()
+        exportControl?.classList.toggle(
+            'is-open'
+        )
     }
 )
 
-previousVariation?.addEventListener(
-    'click',
-    () => {
+exportOptions.forEach(
+    (button) => {
 
-        if (
-            !currentThought ||
-            currentVariation === 0
-        ) {
-            return
-        }
+        button.addEventListener(
+            'click',
+            async () => {
 
-        currentVariation--
+                if (!currentAura) {
+                    return
+                }
 
-        transitionToVariation()
-    }
-)
+                const format =
+                    button.dataset
+                        .format as ExportFormat
 
-function transitionToVariation(): void {
+                try {
 
-    if (
-        !artwork ||
-        !currentThought
-    ) {
-        return
-    }
+                    await exportAura(
+                        currentAura,
+                        format
+                    )
 
-    if (
-        variationTransition !== null
-    ) {
+                    exportControl
+                        ?.classList
+                        .remove(
+                            'is-open'
+                        )
 
-        window.clearTimeout(
-            variationTransition
+                } catch (error) {
+
+                    console.error(
+                        'AURA export failed',
+                        error
+                    )
+                }
+            }
         )
-    }
-
-    artwork.classList.add(
-        'is-transitioning'
-    )
-
-    variationTransition =
-        window.setTimeout(
-            () => {
-
-                renderAura(
-                    currentThought,
-                    currentVariation
-                )
-
-                artwork.classList.remove(
-                    'is-transitioning'
-                )
-
-                variationTransition = null
-
-            },
-            650
-        )
-}
-
-
-window.addEventListener(
-    'keydown',
-    (event) => {
-
-        /*
-         * Don't hijack arrows while
-         * the user is writing.
-         */
-        if (
-            document.activeElement === input
-        ) {
-            return
-        }
-
-
-        if (
-            event.key ===
-            'ArrowRight' &&
-            currentVariation <
-            MAX_VARIATIONS
-        ) {
-
-            currentVariation++
-
-            transitionToVariation()
-        }
-
-
-        if (
-            event.key ===
-            'ArrowLeft' &&
-            currentVariation > 0
-        ) {
-
-            currentVariation--
-
-            transitionToVariation()
-        }
     }
 )

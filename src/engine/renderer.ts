@@ -315,6 +315,7 @@ export class AuraRenderer {
         }
 
         ctx.restore()
+
     }
 
     private createScene(aura: Aura): void {
@@ -619,4 +620,6 @@ export class AuraRenderer {
             this.animationFrame = null
         }
     }
+
+
 }
