@@ -17,7 +17,7 @@ body {
     display: flex;
     flex-direction: column;
 
-    min-height: 100vh;
+    min-height: 100svh;
 
     padding:
         2rem
@@ -240,10 +240,36 @@ body {
 }
 
 
-.aura__form input:focus {
-    border-color: rgba(241, 238, 232, 0.65);
+.aura__form input {
+    transition:
+        border-color 400ms var(--aura-ease),
+        text-shadow 400ms var(--aura-ease);
 }
 
+.aura__form input:focus {
+    border-color: rgba(241, 238, 232, 0.65);
+
+    text-shadow:
+        0 0 1.5rem
+        rgba(241, 238, 232, 0.08);
+}
+
+.aura__form input.is-empty {
+    animation:
+        aura-empty
+        500ms
+        var(--aura-ease);
+}
+
+@keyframes aura-empty {
+    50% {
+        border-color: rgba(241, 238, 232, 0.8);
+    }
+}
+
+.aura__form input:focus-visible {
+    outline: none;
+}
 
 /* ----------------------------------------------------------
    BUTTON
@@ -462,34 +488,34 @@ body {
    ---------------------------------------------------------- */
 
 .aura__artwork {
-    position: absolute;
+    position: fixed;
     inset: 0;
-
     z-index: 0;
-
-    opacity: 0;
-
-    transition:
-        opacity 1.8s var(--aura-ease);
-
     pointer-events: none;
 }
 
-.aura__artwork.is-transitioning {
-    opacity: 0;
-}
-
-.aura__artwork.is-visible {
-    opacity: 1;
-}
-
 .aura__canvas {
-    display: block;
+    position: absolute;
+    inset: 0;
 
     width: 100%;
     height: 100%;
+
+    opacity: 0;
+
+    transition-property: opacity;
+    transition-duration: 2.4s;
+    transition-timing-function: var(--aura-ease);
 }
 
+.aura__canvas.is-active {
+    opacity: 1;
+}
+
+.aura__canvas.is-materializing {
+    transition-duration: 2.8s;
+    transition-delay: 200ms;
+}
 
 .aura__meta {
     margin-top: 2rem;
@@ -604,11 +630,16 @@ body {
     pointer-events: auto;
 }
 
- a {
+.aura__signature {
     color: inherit;
     text-decoration: none;
+
+    transition:
+        opacity 300ms var(--aura-ease);
 }
 
- a:hover {
+.aura__signature:hover {
     opacity: 0.7;
 }
+
+

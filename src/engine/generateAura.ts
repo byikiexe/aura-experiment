@@ -25,7 +25,6 @@ export function generateAura(
     thought: string,
     variation = 0
 ): Aura {
-
     const {
         seed,
         hex,
@@ -36,46 +35,30 @@ export function generateAura(
     return {
 
         thought: thought.trim(),
-
         seed,
         seedHex: hex,
-
         variation,
-
         geometry:
             randomItem(random, geometries),
-
         palette:
             randomItem(random, palettes),
-
         composition: {
-
             density:
                 randomBetween(random, 0.25, 0.9),
-
             complexity:
                 randomBetween(random, 0.2, 1),
-
             symmetry:
                 randomBetween(random, 0, 1),
-
             distortion:
                 randomBetween(random, 0.05, 0.8),
-
         },
-
         motion: {
-
             speed:
                 randomBetween(random, 0.1, 0.7),
-
             amplitude:
                 randomBetween(random, 0.1, 1),
-
         },
-
         noise:
             randomBetween(random, 0.05, 0.5),
-
     }
 }

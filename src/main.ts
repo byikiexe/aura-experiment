@@ -88,7 +88,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
     <footer class="aura__footer">
       <span>CODE × ART × EMOTION</span>
-      <a
+      <a class="aura__signature"
             href="https://byikiexe.com/"
             target="_blank"
             rel="noopener noreferrer"
@@ -101,24 +101,42 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div class="aura__grain" aria-hidden="true"></div>
 
   <div class="aura__artwork" aria-hidden="true">
-    <canvas class="aura__canvas"></canvas>
+    <canvas class="aura__canvas aura__canvas--a"></canvas>
+    <canvas class="aura__canvas aura__canvas--b"></canvas>
   </div>
 `
-const canvas =
-    document.querySelector<HTMLCanvasElement>(
-        '.aura__canvas'
-    )
 
-const artwork =
-    document.querySelector<HTMLDivElement>(
-        '.aura__artwork'
-    )
+function getCanvas(
+    selector: string
+): HTMLCanvasElement {
 
-if (!canvas) {
-    throw new Error('AURA canvas not found')
+    const canvas =
+        document.querySelector<HTMLCanvasElement>(
+            selector
+        )
+
+    if (!canvas) {
+        throw new Error(
+            `AURA canvas not found: ${selector}`
+        )
+    }
+
+    return canvas
 }
 
-const renderer = new AuraRenderer(canvas)
+const canvasA =
+    getCanvas('.aura__canvas--a')
+
+const canvasB =
+    getCanvas('.aura__canvas--b')
+
+const rendererA =
+    new AuraRenderer(canvasA)
+
+const rendererB =
+    new AuraRenderer(canvasB)
+
+
 const form = document.querySelector<HTMLFormElement>('.aura__form')
 const input = document.querySelector<HTMLInputElement>('#thought')
 const meta =
@@ -143,31 +161,133 @@ const exportOptions =
 
 let currentThought = ''
 let currentAura: Aura | null = null
+let activeCanvas:
+    'a' | 'b' = 'a'
 
 function renderAura(
     thought: string
 ): void {
 
     const aura =
-        generateAura(
-            thought
+        generateAura(thought)
+
+    const isFirstAura =
+        currentAura === null
+
+
+    /*
+     * FIRST GENERATION
+     */
+
+    if (isFirstAura) {
+
+        rendererA.render(aura)
+
+        canvasA.classList.add(
+            'is-active'
         )
+
+        activeCanvas = 'a'
+
+    } else {
+
+        /*
+         * CROSSFADE
+         *
+         * Render the new AURA into the
+         * currently hidden canvas.
+         */
+
+        const nextCanvas =
+            activeCanvas === 'a'
+                ? canvasB
+                : canvasA
+
+        const currentCanvas =
+            activeCanvas === 'a'
+                ? canvasA
+                : canvasB
+
+        const nextRenderer =
+            activeCanvas === 'a'
+                ? rendererB
+                : rendererA
+
+
+        /*
+         * Render BEFORE making the
+         * canvas visible.
+         */
+
+        nextRenderer.render(aura)
+
+
+        /*
+         * Start the transition on the
+         * next animation frame.
+         */
+
+        nextRenderer.render(aura)
+
+        nextCanvas.classList.add(
+            'is-materializing'
+        )
+
+        requestAnimationFrame(
+            () => {
+
+                currentCanvas.classList.remove(
+                    'is-active'
+                )
+
+                nextCanvas.classList.add(
+                    'is-active'
+                )
+            }
+        )
+
+        window.setTimeout(
+            () => {
+                nextCanvas.classList.remove(
+                    'is-materializing'
+                )
+            },
+            3000
+        )
+
+        activeCanvas =
+            activeCanvas === 'a'
+                ? 'b'
+                : 'a'
+    }
+
 
     currentAura = aura
 
-    renderer.render(aura)
 
-    artwork?.classList.add('is-visible')
+    /*
+     * METADATA
+     */
 
     if (meta) {
+
         meta.textContent =
             `AURA / ${aura.seedHex} / ${aura.palette.id.toUpperCase()}`
 
-        meta.classList.add('is-visible')
+        meta.classList.add(
+            'is-visible'
+        )
     }
 
-}
 
+    /*
+     * Reset export menu.
+     */
+
+    exportControl?.classList.remove(
+        'is-open'
+    )
+}
 
 
 form?.addEventListener(
@@ -180,7 +300,16 @@ form?.addEventListener(
             input?.value.trim()
 
         if (!thought) {
-            input?.focus()
+            if (input) {
+                input.classList.remove(
+                    'is-empty'
+                )
+                void input.offsetWidth
+                input.classList.add(
+                    'is-empty'
+                )
+                input.focus()
+            }
             return
         }
 
@@ -199,6 +328,15 @@ form?.addEventListener(
 
 exportControl?.classList.add(
     'is-visible'
+)
+
+input?.addEventListener(
+    'animationend',
+    () => {
+        input.classList.remove(
+            'is-empty'
+        )
+    }
 )
 
 exportTrigger?.addEventListener(
