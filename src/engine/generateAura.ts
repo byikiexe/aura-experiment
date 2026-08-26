@@ -1,17 +1,7 @@
 import { createSeed } from '../core/seed'
-
-import {
-    randomBetween,
-    randomItem,
-} from '../core/random'
-
+import { randomBetween, randomItem, } from '../core/random'
 import { palettes } from '../palettes/palettes'
-
-import type {
-    Aura,
-    AuraGeometry,
-} from '../types/aura'
-
+import type { Aura, AuraGeometry, } from '../types/aura'
 
 const geometries: readonly AuraGeometry[] = [
     'orbital',

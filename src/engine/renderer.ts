@@ -21,19 +21,6 @@ interface AuraGlow {
     breathe: number
 }
 
-interface AuraOrbit {
-    x: number
-    y: number
-
-    radiusX: number
-    radiusY: number
-
-    rotation: number
-    phase: number
-
-    opacity: number
-}
-
 export class AuraRenderer {
 
     private readonly canvas: HTMLCanvasElement
@@ -42,7 +29,6 @@ export class AuraRenderer {
     private aura: Aura | null = null
 
     private glows: AuraGlow[] = []
-    private orbits: AuraOrbit[] = []
 
     private animationFrame: number | null = null
 
@@ -243,7 +229,6 @@ export class AuraRenderer {
             createRandom(aura.seed)
 
         this.glows = []
-        this.orbits = []
 
         /*
          * GLOWS
@@ -308,56 +293,6 @@ export class AuraRenderer {
             })
         }
 
-
-        /*
-         * ORBITAL STRUCTURE
-         */
-
-        const orbitCount =
-            Math.floor(
-                2 +
-                aura.composition.complexity * 5
-            )
-
-        for (
-            let i = 0;
-            i < orbitCount;
-            i++
-        ) {
-
-            this.orbits.push({
-
-                x:
-                    0.25 +
-                    random() * 0.5,
-
-                y:
-                    0.2 +
-                    random() * 0.6,
-
-                radiusX:
-                    0.1 +
-                    random() * 0.35,
-
-                radiusY:
-                    0.05 +
-                    random() * 0.25,
-
-                rotation:
-                    random() *
-                    Math.PI,
-
-                phase:
-                    random() *
-                    Math.PI *
-                    2,
-
-                opacity:
-                    0.015 +
-                    random() * 0.035,
-
-            })
-        }
     }
 
     private animate = (

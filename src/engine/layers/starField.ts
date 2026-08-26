@@ -1,4 +1,5 @@
 import type { Aura } from '../../types/aura'
+import { pseudoRandom } from '../utils/random'
 
 interface StarFieldOptions {
     ctx: CanvasRenderingContext2D
@@ -161,18 +162,4 @@ function drawStarPoint(
     ctx.fill()
 
     ctx.restore()
-}
-
-function pseudoRandom(
-    seed: number
-): number {
-
-    const value =
-        Math.sin(seed * 12.9898) *
-        43758.5453
-
-    return (
-        value -
-        Math.floor(value)
-    )
 }

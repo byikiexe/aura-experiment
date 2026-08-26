@@ -1,4 +1,6 @@
 import type { Aura } from '../../types/aura'
+import { pseudoRandom } from '../utils/random'
+import { hexToRgba } from '../utils/color'
 
 interface EnergyCoresOptions {
     ctx: CanvasRenderingContext2D
@@ -354,44 +356,4 @@ function selectCoreColor(
     }
 
     return aura.palette.secondary
-}
-
-function pseudoRandom(
-    seed: number
-): number {
-
-    const value =
-        Math.sin(seed * 12.9898) *
-        43758.5453
-
-    return (
-        value -
-        Math.floor(value)
-    )
-}
-
-function hexToRgba(
-    hex: string,
-    alpha: number
-): string {
-
-    const normalized =
-        hex.replace('#', '')
-
-    const value =
-        Number.parseInt(
-            normalized,
-            16
-        )
-
-    const r =
-        (value >> 16) & 255
-
-    const g =
-        (value >> 8) & 255
-
-    const b =
-        value & 255
-
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
