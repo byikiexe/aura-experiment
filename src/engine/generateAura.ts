@@ -52,6 +52,25 @@ export function generateAura(
             distortion:
                 randomBetween(random, 0.05, 0.8),
         },
+        atmosphere: {
+            luminosity:
+                randomBetween(random, 0.45, 1),
+
+            turbulence:
+                randomBetween(random, 0.2, 1),
+
+            filamentDensity:
+                randomBetween(random, 0.35, 1),
+
+            particleDensity:
+                randomBetween(random, 0.25, 1),
+
+            coreIntensity:
+                randomBetween(random, 0.4, 1),
+
+            orbitalInfluence:
+                randomBetween(random, 0.1, 0.9),
+        },
         motion: {
             speed:
                 randomBetween(random, 0.1, 0.7),

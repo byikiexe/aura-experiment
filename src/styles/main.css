@@ -151,7 +151,7 @@ body {
         clamp(
             4.2rem,
             7.6vw,
-            8.5rem
+            8rem
         );
 
     font-weight: 400;

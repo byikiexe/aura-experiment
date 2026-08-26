@@ -1,5 +1,8 @@
 import { createRandom } from '../core/random'
 import type { Aura } from '../types/aura'
+import { drawNebula } from './layers/nebula'
+import { drawEnergyCores } from './layers/energyCores'
+import { drawStarField } from './layers/starField'
 
 interface AuraGlow {
     x: number
@@ -234,90 +237,6 @@ export class AuraRenderer {
         }
     }
 
-    private drawAnimatedStructure(
-        aura: Aura,
-        time: number,
-        width: number,
-        height: number
-    ): void {
-
-        const ctx = this.context
-
-        const speed =
-            0.015 +
-            aura.motion.speed * 0.025
-
-        const amplitude =
-            aura.motion.amplitude
-
-        ctx.save()
-
-        ctx.lineWidth = 0.45
-
-        for (
-            const orbit of this.orbits
-        ) {
-
-            /*
-             * Rotation is intentionally
-             * extremely slow.
-             */
-            const rotation =
-                orbit.rotation +
-                Math.sin(
-                    time * speed +
-                    orbit.phase
-                ) *
-                0.12 *
-                amplitude
-
-            /*
-             * Tiny expansion / contraction.
-             */
-            const breathe =
-                1 +
-                Math.sin(
-                    time *
-                    speed *
-                    1.7 +
-                    orbit.phase
-                ) *
-                0.025 *
-                amplitude
-
-            ctx.strokeStyle =
-                this.withAlpha(
-                    aura.palette.accent,
-                    orbit.opacity
-                )
-
-            ctx.beginPath()
-
-            ctx.ellipse(
-                orbit.x * width,
-                orbit.y * height,
-
-                orbit.radiusX *
-                width *
-                breathe,
-
-                orbit.radiusY *
-                height *
-                breathe,
-
-                rotation,
-
-                0,
-                Math.PI * 2
-            )
-
-            ctx.stroke()
-        }
-
-        ctx.restore()
-
-    }
-
     private createScene(aura: Aura): void {
 
         const random =
@@ -501,7 +420,21 @@ export class AuraRenderer {
             height
         )
 
+        drawNebula({
+            ctx,
+            aura,
+            width,
+            height,
+            time,
+        })
 
+        drawStarField({
+            ctx,
+            aura,
+            width,
+            height,
+            time,
+        })
         /*
          * Motion characteristics come directly
          * from the generated Aura.
@@ -594,17 +527,14 @@ export class AuraRenderer {
             )
         }
 
-
-        /*
-         * STRUCTURE
-         */
-
-        this.drawAnimatedStructure(
+        drawEnergyCores({
+            ctx,
             aura,
-            time,
             width,
-            height
-        )
+            height,
+            time,
+        })
+
     }
 
     private stop(): void {
