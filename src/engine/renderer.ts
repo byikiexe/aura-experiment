@@ -3,21 +3,17 @@ import type { Aura } from '../types/aura'
 import { drawNebula } from './layers/nebula'
 import { drawEnergyCores } from './layers/energyCores'
 import { drawStarField } from './layers/starField'
+import { hexToRgba } from './utils/color'
 
 interface AuraGlow {
     x: number
     y: number
-
     radius: number
-
     color: string
     opacity: number
-
     phase: number
-
     driftX: number
     driftY: number
-
     breathe: number
 }
 
@@ -99,17 +95,17 @@ export class AuraRenderer {
 
         gradient.addColorStop(
             0,
-            this.withAlpha(color, opacity)
+            hexToRgba(color, opacity)
         )
 
         gradient.addColorStop(
             0.45,
-            this.withAlpha(color, opacity * 0.55)
+            hexToRgba(color, opacity * 0.55)
         )
 
         gradient.addColorStop(
             1,
-            this.withAlpha(color, 0)
+            hexToRgba(color, 0)
         )
 
         ctx.fillStyle = gradient
@@ -141,20 +137,6 @@ export class AuraRenderer {
         }
 
         return aura.palette.accent
-    }
-
-    private withAlpha(
-        hex: string,
-        alpha: number
-    ): string {
-
-        const value = hex.replace('#', '')
-
-        const r = parseInt(value.slice(0, 2), 16)
-        const g = parseInt(value.slice(2, 4), 16)
-        const b = parseInt(value.slice(4, 6), 16)
-
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`
     }
 
     private resize(): {

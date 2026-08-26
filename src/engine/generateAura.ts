@@ -1,15 +1,7 @@
 import { createSeed } from '../core/seed'
 import { randomBetween, randomItem, } from '../core/random'
 import { palettes } from '../palettes/palettes'
-import type { Aura, AuraGeometry, } from '../types/aura'
-
-const geometries: readonly AuraGeometry[] = [
-    'orbital',
-    'organic',
-    'flow',
-    'particles',
-]
-
+import type { Aura, } from '../types/aura'
 
 export function generateAura(
     thought: string,
@@ -28,8 +20,6 @@ export function generateAura(
         seed,
         seedHex: hex,
         variation,
-        geometry:
-            randomItem(random, geometries),
         palette:
             randomItem(random, palettes),
         composition: {
@@ -49,17 +39,12 @@ export function generateAura(
             turbulence:
                 randomBetween(random, 0.2, 1),
 
-            filamentDensity:
-                randomBetween(random, 0.35, 1),
-
             particleDensity:
                 randomBetween(random, 0.25, 1),
 
             coreIntensity:
                 randomBetween(random, 0.4, 1),
 
-            orbitalInfluence:
-                randomBetween(random, 0.1, 0.9),
         },
         motion: {
             speed:

@@ -1,10 +1,3 @@
-export type AuraGeometry =
-    | 'orbital'
-    | 'organic'
-    | 'flow'
-    | 'particles'
-
-
 export interface AuraPalette {
     id: string
     background: string
@@ -33,7 +26,6 @@ export interface Aura {
     seed: number
     seedHex: string
     variation: number
-    geometry: AuraGeometry
     palette: AuraPalette
     composition: AuraComposition
     motion: AuraMotion
@@ -41,9 +33,7 @@ export interface Aura {
     atmosphere: {
         luminosity: number
         turbulence: number
-        filamentDensity: number
         particleDensity: number
         coreIntensity: number
-        orbitalInfluence: number
     }
 }
