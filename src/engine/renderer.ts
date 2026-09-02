@@ -24,6 +24,16 @@ export class AuraRenderer {
 
         this.aura = aura
 
+        const artwork = this.canvas.parentElement
+
+        artwork?.style.setProperty('--aura-primary', aura.palette.primary)
+        artwork?.style.setProperty('--aura-secondary', aura.palette.secondary)
+        artwork?.style.setProperty('--aura-accent', aura.palette.accent)
+        artwork?.style.setProperty(
+            '--aura-flow-duration',
+            `${32 + aura.seed % 17}s`
+        )
+
         // Render once. A permanent frame loop made both canvases keep doing
         // expensive compositing even while one of them was invisible.
         this.renderFrame(0)
