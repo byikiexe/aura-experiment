@@ -10,11 +10,6 @@ interface NebulaOptions {
     time: number
 }
 
-interface BlobPoint {
-    x: number
-    y: number
-}
-
 export function drawNebula({ ctx, aura, width, height }: NebulaOptions): void {
     const scale = Math.min(width, height)
 
@@ -77,8 +72,7 @@ function drawBlurredBlobs(
             radiusY,
             rotation,
             color,
-            intensity,
-            seed
+            intensity
         )
     }
 }
@@ -98,52 +92,24 @@ function drawOrganicBlob(
     radiusY: number,
     rotation: number,
     color: string,
-    alpha: number,
-    seed: number
+    alpha: number
 ): void {
-    const points = createBlobPoints(radiusX, radiusY, seed)
-
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(rotation)
-    ctx.filter = `blur(${Math.max(28, Math.min(radiusX, radiusY) * 0.32)}px)`
-    ctx.fillStyle = hexToRgba(color, alpha)
-    ctx.beginPath()
+    ctx.scale(radiusX, radiusY)
 
-    const first = points[0]
-    const last = points[points.length - 1]
-    ctx.moveTo((first.x + last.x) / 2, (first.y + last.y) / 2)
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+    const saturatedAlpha = Math.min(0.62, alpha * 1.65)
 
-    for (let index = 0; index < points.length; index++) {
-        const current = points[index]
-        const next = points[(index + 1) % points.length]
-        ctx.quadraticCurveTo(
-            current.x,
-            current.y,
-            (current.x + next.x) / 2,
-            (current.y + next.y) / 2
-        )
-    }
+    gradient.addColorStop(0, hexToRgba(color, saturatedAlpha))
+    gradient.addColorStop(0.3, hexToRgba(color, alpha * 0.92))
+    gradient.addColorStop(0.68, hexToRgba(color, alpha * 0.38))
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
 
-    ctx.closePath()
-    ctx.fill()
+    ctx.fillStyle = gradient
+    ctx.fillRect(-1, -1, 2, 2)
     ctx.restore()
-}
-
-function createBlobPoints(radiusX: number, radiusY: number, seed: number): BlobPoint[] {
-    const points: BlobPoint[] = []
-    const count = 9
-
-    for (let index = 0; index < count; index++) {
-        const angle = index / count * Math.PI * 2
-        const variation = 0.72 + pseudoRandom(seed + index * 1543) * 0.48
-        points.push({
-            x: Math.cos(angle) * radiusX * variation,
-            y: Math.sin(angle) * radiusY * variation,
-        })
-    }
-
-    return points
 }
 
 function drawSoftHighlights(

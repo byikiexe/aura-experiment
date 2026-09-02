@@ -17,7 +17,9 @@ body {
     display: flex;
     flex-direction: column;
 
+    min-height: 100vh;
     min-height: 100svh;
+    min-height: 100dvh;
 
     padding:
         2rem
@@ -434,7 +436,8 @@ body {
     .aura {
         padding:
             1.5rem
-            1.4rem;
+            1.4rem
+            max(1.5rem, env(safe-area-inset-bottom));
     }
 
 
