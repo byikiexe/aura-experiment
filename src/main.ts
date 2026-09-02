@@ -265,14 +265,6 @@ function renderAura(
 
         nextRenderer.render(aura)
 
-
-        /*
-         * Start the transition on the
-         * next animation frame.
-         */
-
-        nextRenderer.render(aura)
-
         nextCanvas.classList.add(
             'is-materializing'
         )

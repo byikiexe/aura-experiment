@@ -10,1100 +10,167 @@ interface NebulaOptions {
     time: number
 }
 
-export function drawNebula({
-    ctx,
-    aura,
-    width,
-    height,
-    time,
-}: NebulaOptions): void {
-
-    const {
-        luminosity,
-        turbulence,
-    } = aura.atmosphere
-
-    const centerX =
-        width * (
-            0.42 +
-            Math.sin(aura.seed * 0.001) * 0.08
-        )
-
-    const centerY =
-        height * (
-            0.5 +
-            Math.cos(aura.seed * 0.0013) * 0.08
-        )
-
-    const diagonal =
-        Math.sqrt(
-            width * width +
-            height * height
-        )
-
-    const radius =
-        diagonal * 0.48
-
-    ctx.save()
-
-    /*
-     * Screen makes overlapping light fields
-     * accumulate instead of simply covering
-     * each other.
-     */
-    ctx.globalCompositeOperation = 'screen'
-
-    drawAtmosphericField(
-        ctx,
-        aura,
-        centerX,
-        centerY,
-        radius,
-        luminosity
-    )
-
-    drawNebulaPockets(
-        ctx,
-        aura,
-        centerX,
-        centerY,
-        radius,
-        luminosity,
-        time
-    )
-
-    drawNebulaCavities(
-        ctx,
-        aura,
-        centerX,
-        centerY,
-        radius
-    )
-
-    drawNebulaDust(
-        ctx,
-        aura,
-        centerX,
-        centerY,
-        radius,
-        luminosity
-    )
-
-    drawNebulaVeils(
-        ctx,
-        aura,
-        centerX,
-        centerY,
-        radius,
-        turbulence,
-        luminosity,
-        time
-    )
-
-    ctx.restore()
-}
-
-function drawNebulaDust(
-    ctx: CanvasRenderingContext2D,
-    aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number,
-    luminosity: number
-): void {
-
-    const count =
-        70 +
-        Math.floor(
-            aura.atmosphere.particleDensity * 100
-        )
-
-    ctx.save()
-
-    ctx.globalCompositeOperation =
-        'screen'
-
-    for (
-        let index = 0;
-        index < count;
-        index++
-    ) {
-
-        const seed =
-            aura.seed +
-            index * 104729
-
-        const angle =
-            pseudoRandom(seed + 11) *
-            Math.PI *
-            2
-
-        /*
-         * Bias particles towards the
-         * internal nebula region.
-         */
-        const radial =
-            Math.pow(
-                pseudoRandom(seed + 23),
-                0.72
-            )
-
-        const distance =
-            radial *
-            radius *
-            0.9
-
-        const distortion =
-            0.72 +
-            pseudoRandom(seed + 53) *
-            0.56
-
-        const verticalDistortion =
-            0.75 +
-            pseudoRandom(seed + 67) *
-            0.5
-
-        const x =
-            centerX +
-            Math.cos(angle) *
-            distance * distortion
-
-        const y =
-            centerY +
-            Math.sin(angle) *
-            distance *
-            0.58 * verticalDistortion
-
-        const visibility =
-            pseudoRandom(seed + 37)
-
-        /*
-         * Most particles are microscopic.
-         */
-        // const size =
-        //     0.2 +
-        //     pseudoRandom(seed + 41) *
-        //     0.75
-
-        const size =
-    0.45 +
-    pseudoRandom(seed + 41) * 1.1
-
-        const color =
-            selectDustColor(
-                aura,
-                index
-            )
-
-        drawDustParticle(
-            ctx,
-            color,
-            x,
-            y,
-            size,
-            visibility,
-            luminosity
-        )
-    }
-
-    ctx.restore()
-}
-
-function drawDustParticle(
-    ctx: CanvasRenderingContext2D,
-    color: string,
-    x: number,
-    y: number,
-    radius: number,
-    visibility: number,
-    luminosity: number
-): void {
-
-    /*
-     * Keep most particles extremely subtle.
-     */
-    const alpha =
-        (
-            0.07 +
-            visibility * 0.20
-        ) *
-        luminosity
-
-    ctx.fillStyle =
-        hexToRgba(
-            color,
-            alpha
-        )
-
-    ctx.beginPath()
-
-    ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2
-    )
-
-    ctx.fill()
-
-    /*
-     * Only a very small percentage gets
-     * a diffuse halo.
-     */
-    if (visibility > 0.94) {
-
-        ctx.save()
-
-        ctx.shadowColor =
-            hexToRgba(
-                color,
-                alpha
-            )
-
-        ctx.shadowBlur =
-            3 + radius * 2
-
-        ctx.fillStyle =
-            hexToRgba(
-                color,
-                alpha * 1.15
-            )
-
-        ctx.beginPath()
-
-        ctx.arc(
-            x,
-            y,
-            radius * 1.15,
-            0,
-            Math.PI * 2
-        )
-
-        ctx.fill()
-
-        ctx.restore()
-    }
-}
-
-function selectDustColor(
-    aura: Aura,
-    index: number
-): string {
-
-    if (index % 7 === 0) {
-        return aura.palette.accent
-    }
-
-    if (index % 2 === 0) {
-        return aura.palette.primary
-    }
-
-    return aura.palette.secondary
-}
-
-function drawAtmosphericField(
-    ctx: CanvasRenderingContext2D,
-    aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number,
-    luminosity: number
-): void {
-
-    const gradient =
-        ctx.createRadialGradient(
-            centerX,
-            centerY,
-            0,
-            centerX,
-            centerY,
-            radius
-        )
-
-    gradient.addColorStop(
-        0,
-        hexToRgba(
-            aura.palette.primary,
-            0.14 * luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        0.35,
-        hexToRgba(
-            aura.palette.secondary,
-            0.08 * luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        0.7,
-        hexToRgba(
-            aura.palette.primary,
-            0.025 * luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        1,
-        'rgba(0, 0, 0, 0)'
-    )
-
-    ctx.fillStyle = gradient
-
-    ctx.fillRect(
-        0,
-        0,
-        ctx.canvas.width,
-        ctx.canvas.height
-    )
-}
-function drawNebulaVeils(
-    ctx: CanvasRenderingContext2D,
-    aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number,
-    turbulence: number,
-    luminosity: number,
-    time: number
-): void {
-
-    const ribbonCount =
-        2 +
-        Math.floor(
-            aura.composition.complexity * 2
-        )
-
-    for (
-        let index = 0;
-        index < ribbonCount;
-        index++
-    ) {
-
-        drawNebulaRibbon(
-            ctx,
-            aura,
-            centerX,
-            centerY,
-            radius,
-            turbulence,
-            luminosity,
-            time,
-            index,
-            ribbonCount
-        )
-    }
-}
-
-function drawNebulaRibbon(
-    ctx: CanvasRenderingContext2D,
-    aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number,
-    turbulence: number,
-    luminosity: number,
-    time: number,
-    index: number,
-    count: number
-): void {
-
-    const progress =
-        index / Math.max(1, count - 1)
-
-    const seedPhase =
-        aura.seed * 0.00017 +
-        index * 2.173
-
-    const motion =
-        time *
-        aura.motion.speed *
-        0.000025
-
-    const verticalOffset =
-        (
-            progress - 0.5
-        ) *
-        radius *
-        0.7
-
-    const startX =
-        centerX - radius * 0.9
-
-    const startY =
-        centerY +
-        verticalOffset +
-        Math.sin(
-            seedPhase + motion
-        ) *
-        radius *
-        0.12
-
-    const endX =
-        centerX + radius * 0.9
-
-    const endY =
-        centerY +
-        verticalOffset +
-        Math.cos(
-            seedPhase * 1.37 + motion
-        ) *
-        radius *
-        0.16
-
-    const bend =
-        radius *
-        (
-            0.18 +
-            turbulence * 0.35
-        )
-
-    const control1X =
-        centerX - radius * 0.3
-
-    const control1Y =
-        centerY +
-        verticalOffset +
-        Math.sin(
-            seedPhase * 1.91 + motion
-        ) *
-        bend
-
-    const control2X =
-        centerX + radius * 0.3
-
-    const control2Y =
-        centerY +
-        verticalOffset +
-        Math.cos(
-            seedPhase * 1.53 - motion
-        ) *
-        bend
-
-    const color =
-        index % 3 === 0
-            ? aura.palette.accent
-            : index % 2 === 0
-                ? aura.palette.primary
-                : aura.palette.secondary
-
-    drawRibbonPasses(
-        ctx,
-        color,
-        luminosity,
-        startX,
-        startY,
-        control1X,
-        control1Y,
-        control2X,
-        control2Y,
-        endX,
-        endY,
-        radius,
-        progress
-    )
-
-}
-function drawRibbonPasses(
-    ctx: CanvasRenderingContext2D,
-    color: string,
-    luminosity: number,
-    startX: number,
-    startY: number,
-    control1X: number,
-    control1Y: number,
-    control2X: number,
-    control2Y: number,
-    endX: number,
-    endY: number,
-    radius: number,
-    progress: number
-): void {
-
-    const baseWidth =
-        radius *
-        (
-            0.055 +
-            progress * 0.035
-        )
-
-    /*
-     * Atmospheric outer glow
-     */
-
-    drawRibbonPath(
-        ctx,
-        color,
-        0.018 * luminosity,
-        baseWidth * 7,
-        45,
-        startX,
-        startY,
-        control1X,
-        control1Y,
-        control2X,
-        control2Y,
-        endX,
-        endY
-    )
-
-    /*
-     * Coloured body
-     */
-
-    drawRibbonPath(
-        ctx,
-        color,
-        0.032 * luminosity,
-        baseWidth * 3.5,
-        30,
-        startX,
-        startY,
-        control1X,
-        control1Y,
-        control2X,
-        control2Y,
-        endX,
-        endY
-    )
-
-}
-
-
-function cubicBezierPoint(
-    t: number,
-    startX: number,
-    startY: number,
-    control1X: number,
-    control1Y: number,
-    control2X: number,
-    control2Y: number,
-    endX: number,
-    endY: number
-): {
+interface BlobPoint {
     x: number
     y: number
-} {
-
-    const inverse =
-        1 - t
-
-    const x =
-        inverse ** 3 * startX +
-        3 *
-        inverse ** 2 *
-        t *
-        control1X +
-        3 *
-        inverse *
-        t ** 2 *
-        control2X +
-        t ** 3 * endX
-
-    const y =
-        inverse ** 3 * startY +
-        3 *
-        inverse ** 2 *
-        t *
-        control1Y +
-        3 *
-        inverse *
-        t ** 2 *
-        control2Y +
-        t ** 3 * endY
-
-    return {
-        x,
-        y,
-    }
 }
 
-function drawRibbonPath(
-    ctx: CanvasRenderingContext2D,
-    color: string,
-    alpha: number,
-    lineWidth: number,
-    blur: number,
-    startX: number,
-    startY: number,
-    control1X: number,
-    control1Y: number,
-    control2X: number,
-    control2Y: number,
-    endX: number,
-    endY: number
-): void {
-
-    const segments = 36
-
-    let previous =
-        cubicBezierPoint(
-            0,
-            startX,
-            startY,
-            control1X,
-            control1Y,
-            control2X,
-            control2Y,
-            endX,
-            endY
-        )
+export function drawNebula({ ctx, aura, width, height }: NebulaOptions): void {
+    const scale = Math.min(width, height)
 
     ctx.save()
+    ctx.globalCompositeOperation = 'screen'
 
-    ctx.globalCompositeOperation =
-        'screen'
-
-    ctx.lineCap = 'round'
-
-    ctx.lineJoin = 'round'
-
-    ctx.shadowColor =
-        hexToRgba(
-            color,
-            alpha
-        )
-
-    ctx.shadowBlur = blur
-
-    for (
-        let segment = 1;
-        segment <= segments;
-        segment++
-    ) {
-
-        const t =
-            segment / segments
-
-        const current =
-            cubicBezierPoint(
-                t,
-                startX,
-                startY,
-                control1X,
-                control1Y,
-                control2X,
-                control2Y,
-                endX,
-                endY
-            )
-
-        /*
-         * Bell-shaped envelope:
-         *
-         * 0 → 1 → 0
-         *
-         * Makes the ribbon emerge from
-         * darkness and dissolve again.
-         */
-        const envelope =
-            Math.sin(
-                Math.PI * t
-            )
-
-        const shapedEnvelope =
-            envelope ** 1.6
-
-        ctx.strokeStyle =
-            hexToRgba(
-                color,
-                alpha *
-                shapedEnvelope
-            )
-
-        ctx.lineWidth =
-            Math.max(
-                0.01,
-                lineWidth *
-                shapedEnvelope
-            )
-
-        ctx.beginPath()
-
-        ctx.moveTo(
-            previous.x,
-            previous.y
-        )
-
-        ctx.lineTo(
-            current.x,
-            current.y
-        )
-
-        ctx.stroke()
-
-        previous = current
-    }
+    drawColorWash(ctx, aura, width, height)
+    drawBlurredBlobs(ctx, aura, width, height)
+    drawSoftHighlights(ctx, aura, width, height, scale)
 
     ctx.restore()
 }
 
-function drawNebulaPockets(
+function drawColorWash(
     ctx: CanvasRenderingContext2D,
     aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number,
-    luminosity: number,
-    time: number
+    width: number,
+    height: number
 ): void {
+    const x = width * (0.35 + pseudoRandom(aura.seed + 3) * 0.3)
+    const y = height * (0.35 + pseudoRandom(aura.seed + 5) * 0.3)
+    const radius = Math.max(width, height) * 0.78
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius)
 
-    const pocketCount =
-        5 +
-        Math.floor(
-            aura.composition.complexity * 7
-        )
+    gradient.addColorStop(0, hexToRgba(aura.palette.accent, 0.14))
+    gradient.addColorStop(0.3, hexToRgba(aura.palette.primary, 0.075))
+    gradient.addColorStop(0.68, hexToRgba(aura.palette.secondary, 0.035))
+    gradient.addColorStop(1, 'rgba(0,0,0,0)')
 
-    for (
-        let index = 0;
-        index < pocketCount;
-        index++
-    ) {
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, width, height)
+}
 
-        const seed =
-            aura.seed +
-            index * 19391
+function drawBlurredBlobs(
+    ctx: CanvasRenderingContext2D,
+    aura: Aura,
+    width: number,
+    height: number
+): void {
+    const count = 7 + Math.floor(aura.composition.complexity * 4)
+    const baseSize = Math.min(width, height)
 
-        const angle =
-            pseudoRandom(seed + 11) *
-            Math.PI *
-            2
+    for (let index = 0; index < count; index++) {
+        const seed = aura.seed + index * 42821
+        const color = selectBlobColor(aura, index)
+        const x = width * (-0.05 + pseudoRandom(seed + 1) * 1.1)
+        const y = height * (-0.08 + pseudoRandom(seed + 2) * 1.16)
+        const radiusX = baseSize * (0.18 + pseudoRandom(seed + 3) * 0.28)
+        const radiusY = baseSize * (0.14 + pseudoRandom(seed + 4) * 0.24)
+        const rotation = pseudoRandom(seed + 5) * Math.PI
+        const intensity = color === aura.palette.accent
+            ? 0.28 + aura.atmosphere.luminosity * 0.13
+            : 0.16 + aura.atmosphere.luminosity * 0.09
 
-        const distance =
-            Math.sqrt(
-                pseudoRandom(seed + 23)
-            ) *
-            radius *
-            0.72
-
-        const x =
-            centerX +
-            Math.cos(angle) *
-            distance
-
-        const y =
-            centerY +
-            Math.sin(angle) *
-            distance *
-            0.62
-
-        const size =
-            radius *
-            (
-                0.08 +
-                pseudoRandom(seed + 37) *
-                0.18
-            )
-
-        const phase =
-            pseudoRandom(seed + 51) *
-            Math.PI *
-            2
-
-        const drift =
-            Math.sin(
-                time * 0.00004 *
-                aura.motion.speed +
-                phase
-            ) *
-            radius *
-            0.015 *
-            aura.motion.amplitude
-
-        const color =
-            selectPocketColor(
-                aura,
-                index
-            )
-
-        drawNebulaPocket(
+        drawOrganicBlob(
             ctx,
-            color,
-            x + drift,
+            x,
             y,
-            size,
-            luminosity,
-            pseudoRandom(seed + 71)
+            radiusX,
+            radiusY,
+            rotation,
+            color,
+            intensity,
+            seed
         )
     }
 }
 
-function drawNebulaPocket(
-    ctx: CanvasRenderingContext2D,
-    color: string,
-    x: number,
-    y: number,
-    radius: number,
-    luminosity: number,
-    intensity: number
-): void {
-
-    const gradient =
-        ctx.createRadialGradient(
-            x,
-            y,
-            0,
-            x,
-            y,
-            radius
-        )
-
-    gradient.addColorStop(
-        0,
-        hexToRgba(
-            color,
-            (
-                0.08 +
-                intensity * 0.08
-            ) *
-            luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        0.28,
-        hexToRgba(
-            color,
-            (
-                0.045 +
-                intensity * 0.04
-            ) *
-            luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        0.7,
-        hexToRgba(
-            color,
-            0.015 * luminosity
-        )
-    )
-
-    gradient.addColorStop(
-        1,
-        'rgba(0, 0, 0, 0)'
-    )
-
-    ctx.save()
-
-    ctx.globalCompositeOperation =
-        'screen'
-
-    /*
-     * Deliberately asymmetric.
-     */
-    ctx.translate(
-        x,
-        y
-    )
-
-    ctx.scale(
-        1.4,
-        0.65 +
-        intensity * 0.35
-    )
-
-    ctx.translate(
-        -x,
-        -y
-    )
-
-    ctx.fillStyle =
-        gradient
-
-    ctx.beginPath()
-
-    ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2
-    )
-
-    ctx.fill()
-
-    ctx.restore()
-}
-
-function selectPocketColor(
-    aura: Aura,
-    index: number
-): string {
-
-    if (index % 5 === 0) {
-        return aura.palette.accent
-    }
-
-    if (index % 2 === 0) {
-        return aura.palette.primary
-    }
-
+function selectBlobColor(aura: Aura, index: number): string {
+    // Almost half of the large masses use the complementary accent.
+    if (index % 2 === 0) return aura.palette.accent
+    if (index % 4 === 1) return aura.palette.primary
     return aura.palette.secondary
 }
 
-function drawNebulaCavities(
-    ctx: CanvasRenderingContext2D,
-    aura: Aura,
-    centerX: number,
-    centerY: number,
-    radius: number
-): void {
-
-    const cavityCount =
-        3 +
-        Math.floor(
-            aura.composition.complexity * 4
-        )
-
-    ctx.save()
-
-    /*
-     * Remove luminosity from existing
-     * nebula structures.
-     */
-    ctx.globalCompositeOperation =
-        'destination-out'
-
-    for (
-        let index = 0;
-        index < cavityCount;
-        index++
-    ) {
-
-        const seed =
-            aura.seed +
-            index * 42821
-
-        const angle =
-            pseudoRandom(seed + 13) *
-            Math.PI *
-            2
-
-        const distance =
-            Math.sqrt(
-                pseudoRandom(seed + 29)
-            ) *
-            radius *
-            0.58
-
-        const x =
-            centerX +
-            Math.cos(angle) *
-            distance
-
-        const y =
-            centerY +
-            Math.sin(angle) *
-            distance *
-            0.55
-
-        const size =
-            radius *
-            (
-                0.06 +
-                pseudoRandom(seed + 43) *
-                0.13
-            )
-
-        const strength =
-            0.08 +
-            pseudoRandom(seed + 61) *
-            0.12
-
-        drawCavity(
-            ctx,
-            x,
-            y,
-            size,
-            strength,
-            pseudoRandom(seed + 79)
-        )
-    }
-
-    ctx.restore()
-}
-
-function drawCavity(
+function drawOrganicBlob(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    radius: number,
-    strength: number,
-    variation: number
+    radiusX: number,
+    radiusY: number,
+    rotation: number,
+    color: string,
+    alpha: number,
+    seed: number
 ): void {
-
-    const gradient =
-        ctx.createRadialGradient(
-            x,
-            y,
-            0,
-            x,
-            y,
-            radius
-        )
-
-    gradient.addColorStop(
-        0,
-        `rgba(0, 0, 0, ${strength})`
-    )
-
-    gradient.addColorStop(
-        0.35,
-        `rgba(0, 0, 0, ${strength * 0.7})`
-    )
-
-    gradient.addColorStop(
-        0.72,
-        `rgba(0, 0, 0, ${strength * 0.18})`
-    )
-
-    gradient.addColorStop(
-        1,
-        'rgba(0, 0, 0, 0)'
-    )
+    const points = createBlobPoints(radiusX, radiusY, seed)
 
     ctx.save()
-
-    ctx.translate(
-        x,
-        y
-    )
-
-    ctx.rotate(
-        variation *
-        Math.PI
-    )
-
-    ctx.scale(
-        1.5 +
-        variation * 0.7,
-        0.55 +
-        variation * 0.3
-    )
-
-    ctx.translate(
-        -x,
-        -y
-    )
-
-    ctx.fillStyle =
-        gradient
-
+    ctx.translate(x, y)
+    ctx.rotate(rotation)
+    ctx.filter = `blur(${Math.max(28, Math.min(radiusX, radiusY) * 0.32)}px)`
+    ctx.fillStyle = hexToRgba(color, alpha)
     ctx.beginPath()
 
-    ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2
-    )
+    const first = points[0]
+    const last = points[points.length - 1]
+    ctx.moveTo((first.x + last.x) / 2, (first.y + last.y) / 2)
 
+    for (let index = 0; index < points.length; index++) {
+        const current = points[index]
+        const next = points[(index + 1) % points.length]
+        ctx.quadraticCurveTo(
+            current.x,
+            current.y,
+            (current.x + next.x) / 2,
+            (current.y + next.y) / 2
+        )
+    }
+
+    ctx.closePath()
     ctx.fill()
-
     ctx.restore()
+}
+
+function createBlobPoints(radiusX: number, radiusY: number, seed: number): BlobPoint[] {
+    const points: BlobPoint[] = []
+    const count = 9
+
+    for (let index = 0; index < count; index++) {
+        const angle = index / count * Math.PI * 2
+        const variation = 0.72 + pseudoRandom(seed + index * 1543) * 0.48
+        points.push({
+            x: Math.cos(angle) * radiusX * variation,
+            y: Math.sin(angle) * radiusY * variation,
+        })
+    }
+
+    return points
+}
+
+function drawSoftHighlights(
+    ctx: CanvasRenderingContext2D,
+    aura: Aura,
+    width: number,
+    height: number,
+    scale: number
+): void {
+    const count = 4 + Math.floor(aura.atmosphere.coreIntensity * 3)
+
+    for (let index = 0; index < count; index++) {
+        const seed = aura.seed + index * 68917
+        const x = width * (0.12 + pseudoRandom(seed + 1) * 0.76)
+        const y = height * (0.12 + pseudoRandom(seed + 2) * 0.76)
+        const radius = scale * (0.035 + pseudoRandom(seed + 3) * 0.075)
+        const color = index % 2 === 0 ? aura.palette.accent : aura.palette.primary
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius)
+
+        gradient.addColorStop(0, 'rgba(255,255,255,0.72)')
+        gradient.addColorStop(0.035, hexToRgba(color, 0.72))
+        gradient.addColorStop(0.2, hexToRgba(color, 0.24))
+        gradient.addColorStop(1, 'rgba(0,0,0,0)')
+
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.fill()
+    }
 }

@@ -1,21 +1,6 @@
-import { createRandom } from '../core/random'
 import type { Aura } from '../types/aura'
 import { drawNebula } from './layers/nebula'
-import { drawEnergyCores } from './layers/energyCores'
 import { drawStarField } from './layers/starField'
-import { hexToRgba } from './utils/color'
-
-interface AuraGlow {
-    x: number
-    y: number
-    radius: number
-    color: string
-    opacity: number
-    phase: number
-    driftX: number
-    driftY: number
-    breathe: number
-}
 
 export class AuraRenderer {
 
@@ -23,17 +8,6 @@ export class AuraRenderer {
     private readonly context: CanvasRenderingContext2D
 
     private aura: Aura | null = null
-
-    private glows: AuraGlow[] = []
-
-    private animationFrame: number | null = null
-
-    private startTime = 0
-
-    private prefersReducedMotion =
-        window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches
 
     constructor(canvas: HTMLCanvasElement) {
         const context = canvas.getContext('2d')
@@ -48,95 +22,11 @@ export class AuraRenderer {
 
     render(aura: Aura): void {
 
-        this.stop()
-
         this.aura = aura
 
-        this.createScene(aura)
-
-        this.startTime = performance.now()
-
-        /*
-        * Accessibility:
-        * users requesting reduced motion
-        * receive the deterministic static artwork.
-        */
-        if (this.prefersReducedMotion) {
-
-            this.renderFrame(0)
-
-            return
-        }
-
-        this.animationFrame =
-            requestAnimationFrame(
-                this.animate
-            )
-    }
-
-    private drawGlow(
-        x: number,
-        y: number,
-        radius: number,
-        color: string,
-        opacity: number
-    ): void {
-
-        const ctx = this.context
-
-        const gradient = ctx.createRadialGradient(
-            x,
-            y,
-            0,
-            x,
-            y,
-            radius
-        )
-
-        gradient.addColorStop(
-            0,
-            hexToRgba(color, opacity)
-        )
-
-        gradient.addColorStop(
-            0.45,
-            hexToRgba(color, opacity * 0.55)
-        )
-
-        gradient.addColorStop(
-            1,
-            hexToRgba(color, 0)
-        )
-
-        ctx.fillStyle = gradient
-
-        ctx.beginPath()
-
-        ctx.arc(
-            x,
-            y,
-            radius,
-            0,
-            Math.PI * 2
-        )
-
-        ctx.fill()
-    }
-
-    private pickColor(
-        aura: Aura,
-        value: number
-    ): string {
-
-        if (value < 0.45) {
-            return aura.palette.primary
-        }
-
-        if (value < 0.8) {
-            return aura.palette.secondary
-        }
-
-        return aura.palette.accent
+        // Render once. A permanent frame loop made both canvases keep doing
+        // expensive compositing even while one of them was invisible.
+        this.renderFrame(0)
     }
 
     private resize(): {
@@ -205,98 +95,6 @@ export class AuraRenderer {
         }
     }
 
-    private createScene(aura: Aura): void {
-
-        const random =
-            createRandom(aura.seed)
-
-        this.glows = []
-
-        /*
-         * GLOWS
-         */
-
-        const glowCount =
-            Math.floor(
-                7 +
-                aura.composition.density * 15
-            )
-
-        for (
-            let i = 0;
-            i < glowCount;
-            i++
-        ) {
-
-            this.glows.push({
-
-                /*
-                 * Normalized coordinates.
-                 *
-                 * 0 → left/top
-                 * 1 → right/bottom
-                 */
-                x: random(),
-                y: random(),
-
-                radius:
-                    0.05 +
-                    random() *
-                    0.16 *
-                    aura.composition.complexity,
-
-                color:
-                    this.pickColor(
-                        aura,
-                        random()
-                    ),
-
-                opacity:
-                    0.08 +
-                    random() * 0.18,
-
-                phase:
-                    random() *
-                    Math.PI *
-                    2,
-
-                driftX:
-                    (random() - 0.5) *
-                    0.08,
-
-                driftY:
-                    (random() - 0.5) *
-                    0.08,
-
-                breathe:
-                    0.05 +
-                    random() * 0.12,
-
-            })
-        }
-
-    }
-
-    private animate = (
-        timestamp: number
-    ): void => {
-
-        if (!this.aura) {
-            return
-        }
-
-        const elapsed =
-            (timestamp - this.startTime) /
-            1000
-
-        this.renderFrame(elapsed)
-
-        this.animationFrame =
-            requestAnimationFrame(
-                this.animate
-            )
-    }
-
     private renderFrame(
         time: number
     ): void {
@@ -352,121 +150,6 @@ export class AuraRenderer {
             height,
             time,
         })
-        /*
-         * Motion characteristics come directly
-         * from the generated Aura.
-         */
-        const speed =
-            0.08 +
-            aura.motion.speed * 0.22
-
-        const amplitude =
-            aura.motion.amplitude
-
-
-        /*
-         * LIGHT FIELDS
-         */
-
-        for (
-            const glow of this.glows
-        ) {
-
-            const wave =
-                time * speed +
-                glow.phase
-
-            /*
-             * Slow drifting.
-             */
-            const offsetX =
-                Math.sin(wave) *
-                glow.driftX *
-                amplitude
-
-            const offsetY =
-                Math.cos(
-                    wave * 0.83
-                ) *
-                glow.driftY *
-                amplitude
-
-            /*
-             * Breathing radius.
-             */
-            const breath =
-                1 +
-                Math.sin(
-                    wave * 0.72
-                ) *
-                glow.breathe *
-                amplitude
-
-            /*
-             * Very subtle light pulsation.
-             */
-            const opacity =
-                glow.opacity *
-                (
-                    0.9 +
-                    Math.sin(
-                        wave * 0.55
-                    ) *
-                    0.1 *
-                    amplitude
-                )
-
-            const x =
-                (
-                    glow.x +
-                    offsetX
-                ) *
-                width
-
-            const y =
-                (
-                    glow.y +
-                    offsetY
-                ) *
-                height
-
-            const radius =
-                glow.radius *
-                width *
-                breath
-
-            this.drawGlow(
-                x,
-                y,
-                radius,
-                glow.color,
-                opacity
-            )
-        }
-
-        drawEnergyCores({
-            ctx,
-            aura,
-            width,
-            height,
-            time,
-        })
-
     }
-
-    private stop(): void {
-
-        if (
-            this.animationFrame !== null
-        ) {
-
-            cancelAnimationFrame(
-                this.animationFrame
-            )
-
-            this.animationFrame = null
-        }
-    }
-
 
 }
