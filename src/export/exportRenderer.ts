@@ -139,6 +139,8 @@ private drawArtwork(
         width,
         height,
         time: 0,
+        blobCount: 8 + Math.floor(aura.composition.complexity * 4),
+        blobScale: 1.18,
     })
 
     drawStarField({

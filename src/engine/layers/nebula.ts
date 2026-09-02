@@ -8,16 +8,32 @@ interface NebulaOptions {
     width: number
     height: number
     time: number
+    blobCount?: number
+    blobScale?: number
 }
 
-export function drawNebula({ ctx, aura, width, height }: NebulaOptions): void {
+export function drawNebula({
+    ctx,
+    aura,
+    width,
+    height,
+    blobCount,
+    blobScale = 1,
+}: NebulaOptions): void {
     const scale = Math.min(width, height)
 
     ctx.save()
     ctx.globalCompositeOperation = 'screen'
 
     drawColorWash(ctx, aura, width, height)
-    drawBlurredBlobs(ctx, aura, width, height)
+    drawBlurredBlobs(
+        ctx,
+        aura,
+        width,
+        height,
+        blobCount,
+        blobScale
+    )
     drawSoftHighlights(ctx, aura, width, height, scale)
 
     ctx.restore()
@@ -47,9 +63,11 @@ function drawBlurredBlobs(
     ctx: CanvasRenderingContext2D,
     aura: Aura,
     width: number,
-    height: number
+    height: number,
+    blobCount: number | undefined,
+    blobScale: number
 ): void {
-    const count = 10 + Math.floor(aura.composition.complexity * 5)
+    const count = blobCount ?? 10 + Math.floor(aura.composition.complexity * 5)
     const baseSize = Math.min(width, height)
 
     for (let index = 0; index < count; index++) {
@@ -57,8 +75,8 @@ function drawBlurredBlobs(
         const color = selectBlobColor(aura, index)
         const x = width * (-0.05 + pseudoRandom(seed + 1) * 1.1)
         const y = height * (-0.08 + pseudoRandom(seed + 2) * 1.16)
-        const radiusX = baseSize * (0.18 + pseudoRandom(seed + 3) * 0.28)
-        const radiusY = baseSize * (0.14 + pseudoRandom(seed + 4) * 0.24)
+        const radiusX = baseSize * (0.18 + pseudoRandom(seed + 3) * 0.28) * blobScale
+        const radiusY = baseSize * (0.14 + pseudoRandom(seed + 4) * 0.24) * blobScale
         const rotation = pseudoRandom(seed + 5) * Math.PI
         const intensity = color === aura.palette.accent
             ? 0.28 + aura.atmosphere.luminosity * 0.13
