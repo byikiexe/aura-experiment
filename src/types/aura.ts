@@ -4,6 +4,7 @@ export interface AuraPalette {
     primary: string
     secondary: string
     accent: string
+    tertiary: string
 }
 
 

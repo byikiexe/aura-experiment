@@ -49,7 +49,7 @@ function drawBlurredBlobs(
     width: number,
     height: number
 ): void {
-    const count = 7 + Math.floor(aura.composition.complexity * 4)
+    const count = 10 + Math.floor(aura.composition.complexity * 5)
     const baseSize = Math.min(width, height)
 
     for (let index = 0; index < count; index++) {
@@ -78,10 +78,14 @@ function drawBlurredBlobs(
 }
 
 function selectBlobColor(aura: Aura, index: number): string {
-    // Almost half of the large masses use the complementary accent.
-    if (index % 2 === 0) return aura.palette.accent
-    if (index % 4 === 1) return aura.palette.primary
-    return aura.palette.secondary
+    const colors = [
+        aura.palette.primary,
+        aura.palette.secondary,
+        aura.palette.accent,
+        aura.palette.tertiary,
+    ]
+
+    return colors[index % colors.length]
 }
 
 function drawOrganicBlob(
