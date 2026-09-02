@@ -1,4 +1,6 @@
 import { createRandom } from '../core/random'
+import { drawNebula } from '../engine/layers/nebula'
+import { drawStarField } from '../engine/layers/starField'
 import type { Aura } from '../types/aura'
 
 
@@ -21,9 +23,6 @@ render(
     const width = canvas.width
     const height = canvas.height
 
-    const random =
-        createRandom(aura.seed)
-
     /*
      * BACKGROUND
      */
@@ -45,7 +44,7 @@ render(
     this.drawArtwork(
         ctx,
         aura,
-        random,
+        createRandom(aura.seed),
         width,
         height
     )
@@ -131,6 +130,26 @@ private drawArtwork(
     width: number,
     height: number
 ): void {
+
+    // Shared artwork layers: these are the same calls, parameters and order
+    // used by AuraRenderer on screen.
+    drawNebula({
+        ctx,
+        aura,
+        width,
+        height,
+        time: 0,
+    })
+
+    drawStarField({
+        ctx,
+        aura,
+        width,
+        height,
+        time: 0,
+    })
+
+    return
 
     const baseSize =
         Math.sqrt(width * height)
